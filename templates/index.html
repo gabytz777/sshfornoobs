@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SSH Noob Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🖥️ SSH Noob Dashboard</h1>
+    <p>type ip + login and it grabs nerd stats</p>
+
+    <div class="formbox">
+      <input id="host" placeholder="Host/IP (ex: 192.168.1.10)">
+      <input id="username" placeholder="Username">
+      <input id="password" placeholder="Password" type="password">
+      <button onclick="fetchStats()">Connect</button>
+    </div>
+
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>running commands... hold up</p>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+
+    <div id="results" class="results hidden"></div>
+  </div>
+
+<script>
+async function fetchStats() {
+  const host = document.getElementById("host").value;
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  document.getElementById("results").classList.add("hidden");
+  document.getElementById("error").classList.add("hidden");
+  document.getElementById("loading").classList.remove("hidden");
+
+  const res = await fetch("/fetch", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({host, username, password})
+  });
+
+  const data = await res.json();
+
+  document.getElementById("loading").classList.add("hidden");
+
+  if (!data.ok) {
+    document.getElementById("error").innerText = "Error: " + data.error;
+    document.getElementById("error").classList.remove("hidden");
+    return;
+  }
+
+  let html = "";
+  for (const key in data.stats) {
+    html += `<div class="card">
+      <h2>${key.toUpperCase()}</h2>
+      <pre>${data.stats[key]}</pre>
+    </div>`;
+  }
+
+  document.getElementById("results").innerHTML = html;
+  document.getElementById("results").classList.remove("hidden");
+}
+</script>
+
+</body>
+</html>
